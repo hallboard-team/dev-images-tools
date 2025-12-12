@@ -1,0 +1,52 @@
+# syntax=docker/dockerfile:1.4
+# -----------------------------------------
+# .NET SDK Dev Image (Backend)
+# Works with .NET 9 and .NET 10
+# -----------------------------------------
+ARG DOTNET_VERSION=10.0
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}
+
+# Re-declare for logging / metadata
+ARG DOTNET_VERSION
+
+# Use bash for consistent RUN behaviour
+SHELL ["/bin/bash", "-lc"]
+
+# Reduce noise & telemetry in devcontainers
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_NOLOGO=1 \
+    VSCODE_SERVER_DIR=/home/vscode/.vscode-server-shared
+
+# -------------------------------------------------
+# Ensure a non-root dev user with UID 1000 exists
+# and is called "vscode"
+# -------------------------------------------------
+RUN if id -u vscode >/dev/null 2>&1; then \
+      echo "vscode user already exists"; \
+    elif id -u 1000 >/dev/null 2>&1; then \
+      olduser=$(getent passwd 1000 | cut -d: -f1); \
+      echo "Reusing existing UID 1000 user: ${olduser} -> vscode"; \
+      usermod -l vscode "$olduser"; \
+      groupmod -n vscode "$olduser" || true; \
+      usermod -d /home/vscode -m vscode; \
+    else \
+      useradd -u 1000 -m vscode; \
+    fi
+
+# -------------------------------------------------
+# Workspace + shared VS Code server cache
+# -------------------------------------------------
+RUN mkdir -p /workspaces/app \
+ && mkdir -p /home/vscode/.vscode-server-shared \
+ && chown -R vscode:vscode /workspaces \
+ && chown -R vscode:vscode /home/vscode/.vscode-server-shared
+
+# Switch to non-root dev user
+USER vscode
+WORKDIR /workspaces/app
+
+# Optional: log .NET info at build time
+RUN dotnet --info || true
+
+# Devcontainer / compose will override CMD; keep it idle by default
+CMD ["sleep", "infinity"]
