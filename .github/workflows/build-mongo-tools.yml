@@ -41,7 +41,9 @@ jobs:
         run: |
           # Change these if you want.
           MONGO_VERSION="7.0"
+          MONGO_TOOLS_VERSION="${MONGO_VERSION}"
           echo "MONGO_VERSION=${MONGO_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "MONGO_TOOLS_VERSION=${MONGO_TOOLS_VERSION}" >> "$GITHUB_OUTPUT"
           echo "TAG_VERSION=mongo-${MONGO_VERSION}" >> "$GITHUB_OUTPUT"
           echo "TAG_LATEST=latest" >> "$GITHUB_OUTPUT"
 
@@ -54,6 +56,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             MONGO_VERSION=${{ steps.meta.outputs.MONGO_VERSION }}
+            MONGO_TOOLS_VERSION=${{ steps.meta.outputs.MONGO_TOOLS_VERSION }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.TAG_VERSION }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.TAG_LATEST }}

@@ -1,21 +1,22 @@
+ARG MONGO_VERSION=7.0
+FROM mongo:${MONGO_VERSION}-jammy
+
 ARG MONGO_TOOLS_VERSION=7.0
-FROM mongo:7.0-jammy
 
 SHELL ["/bin/bash", "-c"]
 USER root
 
 RUN set -euxo pipefail \
   && apt-get update -o Acquire::Retries=5 \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl gnupg \
-  # ensure keyrings dir exists
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       ca-certificates \
+       curl \
+       gnupg \
   && install -d -m 0755 /etc/apt/keyrings \
-  # remove any existing Mongo repo entries so we only have ONE definition
   && rm -f /etc/apt/sources.list.d/mongodb-org-*.list /etc/apt/sources.list.d/mongodb*.list \
-  # write the key to the same place the existing config expects
   && curl -fsSL "https://pgp.mongodb.com/server-${MONGO_TOOLS_VERSION}.asc" \
-     | gpg --dearmor -o /etc/apt/keyrings/mongodb.asc \
+     | gpg --batch --yes --no-tty --dearmor -o /etc/apt/keyrings/mongodb.asc \
   && chmod 0644 /etc/apt/keyrings/mongodb.asc \
-  # add repo using that same signed-by
   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mongodb.asc] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/${MONGO_TOOLS_VERSION} multiverse" \
      > /etc/apt/sources.list.d/mongodb-org-${MONGO_TOOLS_VERSION}.list \
   && apt-get update -o Acquire::Retries=5 \
