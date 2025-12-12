@@ -49,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./mongodb
-          file: ./mongodb/Dockerfile
+          file: ../../mongodb/Dockerfile
           push: true
           platforms: linux/amd64
           build-args: |
