@@ -1,22 +1,27 @@
-ARG MONGO_VERSION=7.0
-FROM mongo:${MONGO_VERSION}-jammy
+ARG MONGO_TOOLS_VERSION=7.0
+FROM mongo:7.0-jammy
 
 SHELL ["/bin/bash", "-c"]
 USER root
 
 RUN set -euxo pipefail \
   && apt-get update -o Acquire::Retries=5 \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       ca-certificates curl gnupg \
-  && rm -f /etc/apt/sources.list.d/mongodb-org-*.list \
-  && curl -fsSL https://pgp.mongodb.com/server-7.0.asc \
-     | gpg --batch --yes --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg \
-  && chmod 0644 /usr/share/keyrings/mongodb-server-7.0.gpg \
-  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
-     > /etc/apt/sources.list.d/mongodb-org-7.0.list \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+  # ensure keyrings dir exists
+  && install -d -m 0755 /etc/apt/keyrings \
+  # remove any existing Mongo repo entries so we only have ONE definition
+  && rm -f /etc/apt/sources.list.d/mongodb-org-*.list /etc/apt/sources.list.d/mongodb*.list \
+  # write the key to the same place the existing config expects
+  && curl -fsSL "https://pgp.mongodb.com/server-${MONGO_TOOLS_VERSION}.asc" \
+     | gpg --dearmor -o /etc/apt/keyrings/mongodb.asc \
+  && chmod 0644 /etc/apt/keyrings/mongodb.asc \
+  # add repo using that same signed-by
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/mongodb.asc] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/${MONGO_TOOLS_VERSION} multiverse" \
+     > /etc/apt/sources.list.d/mongodb-org-${MONGO_TOOLS_VERSION}.list \
   && apt-get update -o Acquire::Retries=5 \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       mongodb-database-tools mongodb-mongosh \
+       mongodb-mongosh \
+       mongodb-database-tools \
   && rm -rf /var/lib/apt/lists/* \
   && mongosh --version \
   && mongodump --version
