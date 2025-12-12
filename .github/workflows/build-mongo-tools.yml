@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/mongo-tools
+  IMAGE_NAME: ${{ github.repository_owner }}/tools
 
 jobs:
   build:
@@ -41,15 +41,15 @@ jobs:
         run: |
           # Change these if you want.
           MONGO_VERSION="7.0"
-          echo "MONGO_VERSION=$MONGO_VERSION" >> $GITHUB_OUTPUT
-          echo "TAG_VERSION=${MONGO_VERSION}" >> $GITHUB_OUTPUT
-          echo "TAG_LATEST=latest" >> $GITHUB_OUTPUT
+          echo "MONGO_VERSION=${MONGO_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG_VERSION=mongo-${MONGO_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG_LATEST=latest" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: ./mongodb
-          file: ../../mongodb/Dockerfile
+          file: ./mongodb/Dockerfile.dev
           push: true
           platforms: linux/amd64
           build-args: |
