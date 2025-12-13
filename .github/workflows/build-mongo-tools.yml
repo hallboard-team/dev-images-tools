@@ -1,3 +1,7 @@
+# Guide:
+# - Update versions in the "Compute tags" step (MONGO_VERSION, MONGO_TOOLS_VERSION).
+# - Adjust registry/image defaults in the env block if publishing elsewhere.
+# - Change the Docker build context or Dockerfile paths in the "Build and push" step if needed.
 name: Build & Push mongo-tools
 
 on:
