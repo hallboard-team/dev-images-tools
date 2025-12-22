@@ -1,0 +1,67 @@
+# syntax=docker/dockerfile:1.4
+
+# -------------------------------------------------
+# Node + Angular Dev Image (Frontend)
+# Shared across team via GHCR
+# -------------------------------------------------
+ARG NODE_VERSION=24
+ARG ANGULAR_VERSION=21
+
+FROM node:${NODE_VERSION}-bookworm
+
+# Re-declare build args for later use
+ARG ANGULAR_VERSION
+ARG NODE_VERSION
+
+# Use bash for nicer RUN chains
+SHELL ["/bin/bash", "-lc"]
+
+# -------------------------------------------------
+# Rename default "node" user → "vscode"
+# Node image already has user "node" with UID 1000.
+# We want a consistent "vscode" dev user across
+# backend + frontend devcontainers.
+# -------------------------------------------------
+RUN usermod -l vscode node \
+ && groupmod -n vscode node \
+ && usermod -d /home/vscode -m vscode
+
+# -------------------------------------------------
+# Install pnpm (via corepack) + Angular CLI globally
+# - corepack comes with Node >=16.19
+# - pnpm managed by corepack for version consistency
+# -------------------------------------------------
+RUN corepack enable \
+ && corepack prepare pnpm@latest --activate \
+ && npm install -g @angular/cli@${ANGULAR_VERSION}
+
+# -------------------------------------------------
+# Prepare workspace + VS Code server shared dir
+# - /workspaces/app : mounted project root
+# - /home/vscode/.vscode-server-shared : shared VS Code server cache
+# -------------------------------------------------
+RUN mkdir -p /workspaces/app \
+ && mkdir -p /home/vscode/.vscode-server-shared \
+ && chown -R vscode:vscode /workspaces \
+ && chown -R vscode:vscode /home/vscode/.vscode-server-shared
+
+# VS Code will install its server here (host-mounted volume)
+ENV VSCODE_SERVER_DIR=/home/vscode/.vscode-server-shared
+
+# -------------------------------------------------
+# Switch to non-root dev user
+# -------------------------------------------------
+USER vscode
+WORKDIR /workspaces/app
+
+# -------------------------------------------------
+# Configure Angular CLI to use pnpm by default
+# This writes to /home/vscode/.angular-config.json
+# -------------------------------------------------
+RUN ng config -g cli.packageManager pnpm || true
+
+# Optional: log versions at build time (debugging/tagging)
+RUN node -v && pnpm -v && ng version || true
+
+# Devcontainer / docker-compose overrides CMD; keep it idle
+CMD ["sleep", "infinity"]

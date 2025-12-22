@@ -1,0 +1,87 @@
+# -----------------------------
+# Build & Push .NET Dev Image
+# Adjust the env block below to change registry,
+# repo, .NET version, variants, context, Dockerfile, or platforms.
+# -----------------------------
+name: Build & Push .NET Dev Image
+
+on:
+  push:
+    paths:
+      - Dockerfile.dev
+      - build-push-dotnet-dev.sh
+      - .github/workflows/build-dotnet-dev.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/dotnet
+  DOTNET_VERSION: "9.0"
+  VARIANTS_JSON: '["sdk"]'
+  BUILD_CONTEXT: .
+  DOCKERFILE: ./Dockerfile.dev
+  PLATFORMS: linux/amd64
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      variants: ${{ steps.set-variants.outputs.matrix }}
+    steps:
+      - name: Emit variant matrix
+        id: set-variants
+        run: echo "matrix=${VARIANTS_JSON}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: ${{ fromJSON(needs.prepare.outputs.variants) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (optional multi-arch)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: meta
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          DOTNET_VERSION="${DOTNET_VERSION:-10.0}"
+          TAG_VERSION="${DOTNET_VERSION}-${VARIANT}"
+          echo "DOTNET_VERSION=${DOTNET_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "VARIANT=${VARIANT}" >> "$GITHUB_OUTPUT"
+          echo "TAG_VERSION=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.BUILD_CONTEXT }}
+          file: ${{ env.DOCKERFILE }}
+          push: true
+          platforms: ${{ env.PLATFORMS }}
+          build-args: |
+            DOTNET_VERSION=${{ steps.meta.outputs.DOTNET_VERSION }}
+            DOTNET_VARIANT=${{ steps.meta.outputs.VARIANT }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.TAG_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
