@@ -4,7 +4,7 @@ Use this file to capture repo-specific conventions for both humans and coding ag
 
 ## Image Tagging
 - Tag format should reflect the configured versions: `dotnet<major.minor>-node<major>-ng<major>`.
-- Keep tag generation logic aligned with `.github/workflows/build-node-angular.yml`.
+- Keep tag generation logic aligned with `.github/workflows/build-fullstack-dev.yml`.
 - If you change versioning in the workflow, check any scripts or docs that reference tags.
 - For production later, prefer publishing both:
   - a pinned tag (exact versions) for reproducibility

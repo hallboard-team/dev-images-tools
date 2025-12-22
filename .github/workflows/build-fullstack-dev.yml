@@ -7,9 +7,8 @@ name: Build & Push fullstack-dev image
 on:
   push:
     paths:
-      - "Dockerfile.dev"
-      - "build-push-dev-full.sh"
-      - ".github/workflows/build-node-angular.yml"
+      - "full-stack/**"
+      - ".github/workflows/build-fullstack-dev.yml"
   workflow_dispatch:
 
 permissions:
@@ -54,8 +53,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile.dev
+          context: ./full-stack
+          file: ./full-stack/Dockerfile.dev
           push: true
           platforms: ${{ env.PLATFORMS }}
           build-args: |

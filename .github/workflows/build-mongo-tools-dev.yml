@@ -8,7 +8,7 @@ on:
   push:
     paths:
       - "mongodb/**"
-      - ".github/workflows/build-mongo-tools.yml"
+      - ".github/workflows/build-mongo-tools-dev.yml"
   workflow_dispatch:
 
 permissions:

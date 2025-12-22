@@ -1,15 +1,14 @@
-# ---------------------------------------------------------------------------------
-# Fullstack dev image workflow (.NET SDK + Node + Angular CLI)
+# --------------------------------------------------------------------
+# Node + Angular dev image workflow
 # Update the env block below to tweak versions, targets, or registry values.
-# ---------------------------------------------------------------------------------
-name: Build & Push fullstack-dev image
+# --------------------------------------------------------------------
+name: Build & Push node-angular-dev image
 
 on:
   push:
     paths:
-      - "Dockerfile.dev"
-      - "build-push-dev-full.sh"
-      - ".github/workflows/build-node-angular.yml"
+      - "node-angular/**"
+      - ".github/workflows/build-node-angular-dev.yml"
   workflow_dispatch:
 
 permissions:
@@ -18,8 +17,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/fullstack-dev
-  DOTNET_VERSION: "10.0"
+  IMAGE_NAME: ${{ github.repository_owner }}/node-angular
   NODE_VERSION: "24"
   ANGULAR_VERSION: "21"
   PLATFORMS: linux/amd64
@@ -48,18 +46,17 @@ jobs:
       - name: Compute tags
         id: meta
         run: |
-          VERSION_TAG="dotnet${DOTNET_VERSION}-node${NODE_VERSION}-ng${ANGULAR_VERSION}"
+          VERSION_TAG="node${NODE_VERSION}-ng${ANGULAR_VERSION}"
           echo "VERSION_TAG=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile.dev
+          context: ./node-angular
+          file: ./node-angular/Dockerfile.dev
           push: true
           platforms: ${{ env.PLATFORMS }}
           build-args: |
-            DOTNET_VERSION=${{ env.DOTNET_VERSION }}
             NODE_VERSION=${{ env.NODE_VERSION }}
             ANGULAR_VERSION=${{ env.ANGULAR_VERSION }}
           tags: |

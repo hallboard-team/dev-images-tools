@@ -1,13 +1,12 @@
 #!/bin/bash
 # -----------------------------
-# Build & Start Docker Compose for .NET dev environment (shared stack)
+# Build & push .NET dev image
 # Usage:
-#   ./pull-build-start-dev.sh [dotnet_version]
+#   ./build-push-dotnet-dev.sh [dotnet_version] [variant]
 # Examples:
 #   ./build-push-dotnet-dev.sh 10.0
 #   ./build-push-dotnet-dev.sh 10.0 runtime
 # -----------------------------
-#!/bin/bash
 
 set -euo pipefail
 cd "$(dirname "$0")"

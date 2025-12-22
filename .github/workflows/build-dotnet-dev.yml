@@ -8,8 +8,7 @@ name: Build & Push .NET Dev Image
 on:
   push:
     paths:
-      - Dockerfile.dev
-      - build-push-dotnet-dev.sh
+      - dotnet/**
       - .github/workflows/build-dotnet-dev.yml
   workflow_dispatch:
 
@@ -20,10 +19,10 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/dotnet
-  DOTNET_VERSION: "9.0"
+  DOTNET_VERSION: "10.0"
   VARIANTS_JSON: '["sdk"]'
-  BUILD_CONTEXT: .
-  DOCKERFILE: ./Dockerfile.dev
+  BUILD_CONTEXT: ./dotnet
+  DOCKERFILE: ./dotnet/Dockerfile.dev
   PLATFORMS: linux/amd64
 
 jobs:

@@ -8,9 +8,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-NODE_VERSION="${1:-22}"
-ANGULAR_VERSION="${2:-20}"
-IMAGE="ghcr.io/hallboard-team/node-angular:${NODE_VERSION}-${ANGULAR_VERSION}"
+NODE_VERSION="${1:-24}"
+ANGULAR_VERSION="${2:-21}"
+IMAGE="ghcr.io/hallboard-team/node-angular:node${NODE_VERSION}-ng${ANGULAR_VERSION}"
 
 echo "🏗️  Building dev image: $IMAGE"
 
